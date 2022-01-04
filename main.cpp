@@ -10,7 +10,8 @@
 #include "Codegen.h"
 
 // expr = mul ("+" mul | "-" mul)*
-// mul = primary ("*" primary | "/" primary)*
+// mul = primary ("*" unary | "/" unary)*
+// unary = ("+" | "-")? primary
 // primary = num | "(" expr ")"
 
 template<typename T>
@@ -28,6 +29,7 @@ auto consume(Token::TokenSpan& s, char ch) -> bool {
 }
 
 auto mul(Token::TokenSpan& tokens) -> Ast::Node;
+auto unary(Token::TokenSpan& tokens) -> Ast::Node;
 auto primary(Token::TokenSpan& s) -> Ast::Node;
 auto expectNum(Token::TokenSpan& token) -> int;
 
@@ -54,22 +56,35 @@ auto expr(Token::TokenSpan& s) -> Ast::Node {
 }
 
 auto mul(Token::TokenSpan& tokens) -> Ast::Node {
-    auto node = primary(tokens);
+    auto node = unary(tokens);
 
     for (;;) {
         if (consume<Token::Operation>(tokens, '*'))
             node = Ast::Node { Ast::Operation {
                 .kind = Ast::Operation::Mul,
                 .left = std::make_unique<Ast::Node>(std::move(node)),
-                .right = std::make_unique<Ast::Node>(primary(tokens)) }};
+                .right = std::make_unique<Ast::Node>(unary(tokens)) }};
         else if (consume<Token::Operation>(tokens, '/'))
             node = Ast::Node { Ast::Operation {
                 .kind = Ast::Operation::Div,
                 .left = std::make_unique<Ast::Node>(std::move(node)),
-                .right = std::make_unique<Ast::Node>(primary(tokens)) }};
+                .right = std::make_unique<Ast::Node>(unary(tokens)) }};
         else
             return node;
     }
+}
+
+auto unary(Token::TokenSpan& tokens) -> Ast::Node {
+    if (consume<Token::Operation>(tokens, '+'))
+        return primary(tokens);
+
+    if (consume<Token::Operation>(tokens, '-'))
+        return Ast::Node { Ast::Operation {
+            .kind = Ast::Operation::Sub,
+            .left = std::make_unique<Ast::Node>(Ast::Node { Ast::Num{.value = 0}}),
+            .right = std::make_unique<Ast::Node>(std::move(primary(tokens))) }};
+
+    return primary(tokens);
 }
 
 auto primary(Token::TokenSpan& tokens) -> Ast::Node {
