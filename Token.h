@@ -2,6 +2,7 @@
 
 #include <variant>
 #include <span>
+#include <vector>
 
 namespace Token {
     struct Num {
@@ -12,6 +13,10 @@ namespace Token {
         char type{};
     };
 
+    struct Condition {
+        char type{};
+    };
+
     struct Grouping {
         char type{};
     };
@@ -19,7 +24,7 @@ namespace Token {
     struct Eof {
     };
 
-    using Token = std::variant<Num, Operation, Grouping, Eof>;
+    using Token = std::variant<Num, Operation, Grouping, Condition, Eof>;
     using TokenVec = std::vector<Token>;
     using TokenSpan = std::span<Token>;
 };

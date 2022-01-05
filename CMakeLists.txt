@@ -3,4 +3,4 @@ project(cc)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(rcc main.cpp)
+add_executable(rcc main.cpp Scanner.cpp)
