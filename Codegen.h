@@ -43,6 +43,37 @@ public:
     void operator()(const Ast::Num& num) {
        std::cout << " push " << num.value << "\n";
    }
+
+    void operator()(const Ast::Condition& cond) {
+        std::visit(*this, cond.left->var);
+        std::visit(*this, cond.right->var);
+
+        std::cout << " pop rdi \n";
+        std::cout << " pop rax \n";
+        std::cout << " cmp rax, rdi \n";
+        switch (cond.kind) {
+            case Ast::Condition::Eq:
+                std::cout << " sete al \n";
+                break;
+            case Ast::Condition::NotEq:
+                std::cout << " setne al \n";
+                break;
+            case Ast::Condition::Less:
+                std::cout << " setl al \n";
+                break;
+            case Ast::Condition::Greater:
+                std::cout << " setg al \n";
+                break;
+            case Ast::Condition::LessEq:
+                std::cout << " setle al \n";
+                break;
+            case Ast::Condition::GreaterEq:
+                std::cout << " setge al \n";
+                break;
+        }
+        std::cout << " movzb rax, al \n";
+        std::cout << " push rax \n";
+    }
 private:
     void putIntro() {
         std::cout << ".intel_syntax noprefix\n";

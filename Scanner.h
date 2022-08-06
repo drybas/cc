@@ -1,5 +1,7 @@
 #pragma once
+
 #include <string>
+#include <tuple>
 #include "Token.h"
 
 class Scanner {
@@ -8,6 +10,8 @@ public:
     auto scan() -> Token::TokenVec;
 private:
     auto match(char ch) -> bool;
+    auto peek() -> std::tuple<bool, char>;
+private:
     std::string m_source;
     std::string::const_iterator m_it;
     std::string::const_iterator m_end;

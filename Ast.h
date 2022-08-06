@@ -18,7 +18,14 @@ struct Operation {
     NodePtr right;
 };
 
-using NodeVar = std::variant<Num, Operation>;
+struct Condition {
+    // == != < > <= >=
+    enum { Eq, NotEq, Less, Greater, LessEq, GreaterEq } kind;
+    NodePtr left;
+    NodePtr right;
+};
+
+using NodeVar = std::variant<Num, Operation, Condition>;
 struct Node {
     NodeVar var;
 };

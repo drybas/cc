@@ -14,7 +14,7 @@ namespace Token {
     };
 
     struct Condition {
-        char type{};
+        std::string type{};
     };
 
     struct Grouping {

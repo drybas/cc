@@ -1,4 +1,5 @@
 #include "Scanner.h"
+#include "Error.h"
 
 #include<stdexcept>
 
@@ -19,12 +20,38 @@ auto Scanner::scan() -> Token::TokenVec {
             m_it++;
             continue;
         } else if (*m_it == '=') {
+            m_it++;
             if (match('=')) {
-                tokens.emplace_back(Token::Token{ Token::Condition { .type = '='}});
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = "=="}});
                 continue;
             } else {
                 throw std::logic_error("unexpected symbol");
+                Error::raise(Error::UnexpectedSymbol, *m_it);
             }
+        } else if (*m_it == '!') {
+            m_it++;
+            if (match('=')) {
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = "!="}});
+                continue;
+            } else {
+                Error::raise(Error::UnexpectedSymbol, *m_it);
+            }
+        } else if (*m_it == '>') {
+            m_it++;
+            if (match('=')) {
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = ">="}});
+            } else {
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = ">"}});
+            }
+            continue;
+        } else if (*m_it == '<') {
+            m_it++;
+            if (match('=')) {
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = "<="}});
+            } else {
+                tokens.emplace_back(Token::Token{ Token::Condition { .type = "<"}});
+            }
+            continue;
         } else if (*m_it == '(' || *m_it == ')') {
             tokens.emplace_back(Token::Token{Token::Grouping{*m_it}});
             m_it++;
@@ -41,7 +68,7 @@ auto Scanner::scan() -> Token::TokenVec {
             }
         }
 
-        throw std::logic_error("unexpected character");
+        Error::raise(Error::UnexpectedSymbol, *m_it);
     }
 
     tokens.emplace_back(Token::Eof{});
@@ -56,3 +83,11 @@ auto Scanner::match(char ch) -> bool {
 
     return false;
 }
+
+auto Scanner::peek() -> std::tuple<bool, char> {
+    if (m_it != m_end)
+        return std::make_tuple(true, *m_it);
+
+    return std::make_tuple(false, '\0');
+}
+

@@ -1,7 +1,5 @@
 #include <iostream>
-#include <vector>
 #include <variant>
-#include <cctype>
 #include <exception>
 #include <sstream>
 
@@ -10,7 +8,9 @@
 #include "Codegen.h"
 #include "Scanner.h"
 
-// expr = mul ("+" mul | "-" mul)*
+// expr = rel ("==" rel | "!=" rel)*
+// rel = add (">" add | "<" add | ">=" add | "<=" add)*
+// add = mul ("+" mul | "-" mul)*
 // mul = primary ("*" unary | "/" unary)*
 // unary = ("+" | "-")? primary
 // primary = num | "(" expr ")"
@@ -29,6 +29,22 @@ auto consume(Token::TokenSpan& s, char ch) -> bool {
     return false;
 }
 
+template<typename T>
+auto consume(Token::TokenSpan& s, std::string_view value) -> bool {
+    if (s.empty())
+        return false;
+    if (const auto p = std::get_if<T>(&s.front())) {
+        if (p->type == value) {
+            s = s.subspan(1);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+auto rel(Token::TokenSpan& tokens) -> Ast::Node;
+auto add(Token::TokenSpan& tokens) -> Ast::Node;
 auto mul(Token::TokenSpan& tokens) -> Ast::Node;
 auto unary(Token::TokenSpan& tokens) -> Ast::Node;
 auto primary(Token::TokenSpan& s) -> Ast::Node;
@@ -38,19 +54,69 @@ template<typename T>
 void expect(Token::TokenSpan& tokens, char ch);
 
 auto expr(Token::TokenSpan& s) -> Ast::Node {
+    auto node = rel(s);
+    for (;;) {
+       if (consume<Token::Condition>(s, "=="))
+           node = Ast::Node { Ast::Condition {
+                   .kind = Ast::Condition::Eq,
+                   .left =std::make_unique<Ast::Node>(std::move(node)),
+                   .right = std::make_unique<Ast::Node>(rel(s)) }};
+       else if (consume<Token::Condition>(s, "!="))
+           node = Ast::Node { Ast::Condition{
+                   .kind = Ast::Condition::NotEq,
+                   .left = std::make_unique<Ast::Node>(std::move(node)),
+                   .right = std::make_unique<Ast::Node>(rel(s)) }};
+       else
+           return node;
+    }
+// expr = rel ("==" rel | "!=" rel)*
+}
+
+auto rel(Token::TokenSpan& s) -> Ast::Node {
+    auto node = add(s);
+
+    for (;;) {
+        if (consume<Token::Condition>(s, ">="))
+            node = Ast::Node { Ast::Condition {
+                    .kind = Ast::Condition::GreaterEq,
+                    .left =std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(add(s)) }};
+        else if (consume<Token::Condition>(s, ">"))
+            node = Ast::Node { Ast::Condition{
+                    .kind = Ast::Condition::Greater,
+                    .left = std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(add(s)) }};
+        else if (consume<Token::Condition>(s, "<="))
+            node = Ast::Node { Ast::Condition {
+                    .kind = Ast::Condition::LessEq,
+                    .left =std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(add(s)) }};
+        else if (consume<Token::Condition>(s, "<"))
+            node = Ast::Node { Ast::Condition{
+                    .kind = Ast::Condition::Less,
+                    .left = std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(add(s)) }};
+        else
+            return node;
+    }
+
+// rel = add (">" add | "<" add | ">=" add | "<=" add)*
+}
+
+auto add(Token::TokenSpan& s) ->Ast::Node {
     auto node = mul(s);
 
     for (;;) {
         if (consume<Token::Operation>(s, '+'))
             node = Ast::Node { Ast::Operation {
-                .kind = Ast::Operation::Add,
-                .left = std::make_unique<Ast::Node>(std::move(node)),
-                .right = std::make_unique<Ast::Node>(mul(s)) }};
+                    .kind = Ast::Operation::Add,
+                    .left = std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(mul(s)) }};
         else if (consume<Token::Operation>(s, '-'))
             node = Ast::Node { Ast::Operation{
-                .kind = Ast::Operation::Sub,
-                .left = std::make_unique<Ast::Node>(std::move(node)),
-                .right = std::make_unique<Ast::Node>(std::move(mul(s))) }};
+                    .kind = Ast::Operation::Sub,
+                    .left = std::make_unique<Ast::Node>(std::move(node)),
+                    .right = std::make_unique<Ast::Node>(std::move(mul(s))) }};
         else
             return node;
     }
@@ -111,7 +177,6 @@ void expect(Token::TokenSpan& tokens, char ch) {
     throw std::logic_error(msg.str());
 }
 
-
 auto expectNum(Token::TokenSpan& tokens) -> int {
     if (const Token::Num* p = std::get_if<Token::Num>(&tokens.front())) {
         tokens = tokens.subspan(1);
@@ -121,10 +186,9 @@ auto expectNum(Token::TokenSpan& tokens) -> int {
     }
 }
 
-
 int main(int argc, char* argv[]) {
     if (argc == 1) {
-       std::cout << "error: no arguments were specified";
+       std::cout << "no arguments were specified \n";
        return 1;
     }
     try {
