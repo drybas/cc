@@ -25,7 +25,16 @@ struct Condition {
     NodePtr right;
 };
 
-using NodeVar = std::variant<Num, Operation, Condition>;
+struct Assign {
+    NodePtr left;
+    NodePtr right;
+};
+
+struct Lval {
+    std::string name;
+};
+
+using NodeVar = std::variant<Num, Operation, Condition, Assign, Lval>;
 struct Node {
     NodeVar var;
 };

@@ -25,8 +25,8 @@ auto Scanner::scan() -> Token::TokenVec {
                 tokens.emplace_back(Token::Token{ Token::Condition { .type = "=="}});
                 continue;
             } else {
-                throw std::logic_error("unexpected symbol");
-                Error::raise(Error::UnexpectedSymbol, *m_it);
+                tokens.emplace_back(Token::Token { Token::Assignment { .type = *m_it }});
+                continue;
             }
         } else if (*m_it == '!') {
             m_it++;
@@ -52,9 +52,16 @@ auto Scanner::scan() -> Token::TokenVec {
                 tokens.emplace_back(Token::Token{ Token::Condition { .type = "<"}});
             }
             continue;
-        } else if (*m_it == '(' || *m_it == ')') {
-            tokens.emplace_back(Token::Token{Token::Grouping{*m_it}});
+        } else if (*m_it == '(' || *m_it == ')' || *m_it == ';')
+        {
+            tokens.emplace_back(Token::Token{Token::Punctuation{*m_it}});
             m_it++;
+            continue;
+        } else if (std::isalpha(*m_it) > 0) {
+            auto e = std::find_if_not(m_it, m_end, [](auto c){ return std::isalpha(c) > 0; });
+            std::string var(m_it, e);
+            tokens.emplace_back(Token::Token{Token::Variable{.name = var}});
+            m_it = e;
             continue;
         } else if (std::isdigit(*m_it) > 0) {
             auto e = std::find_if_not(m_it, m_end, [](auto c) -> bool { return std::isdigit(c) > 0; });

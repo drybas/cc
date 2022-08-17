@@ -2,8 +2,10 @@
 
 namespace Error {
     enum ErrorKind {
-        UnexpectedSymbol
+        UnexpectedSymbol,
+        ExpectedSymbol,
+        ExpectPrimary,
     };
 
-    void raise(ErrorKind e, char ch);
+    void raise(ErrorKind e, char ch = '\0');
 }

@@ -74,6 +74,14 @@ public:
         std::cout << " movzb rax, al \n";
         std::cout << " push rax \n";
     }
+
+    void operator()(const Ast::Lval& lval) {
+
+    }
+
+    void operator()(const Ast::Assign& lval) {
+
+   }
 private:
     void putIntro() {
         std::cout << ".intel_syntax noprefix\n";
