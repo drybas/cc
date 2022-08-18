@@ -6,6 +6,7 @@
 #include "Error.h"
 
 #include <sstream>
+#include <algorithm>
 
 // stmt = expr ";"
 // expr = assign
@@ -66,6 +67,7 @@ auto Parser::stmt(Token::TokenSpan& s) -> Ast::Node {
 
 auto Parser::expr(Token::TokenSpan& s) -> Ast::Node {
     auto node = Parser::assign(s);
+
     return node;
 }
 
@@ -206,7 +208,17 @@ auto Parser::primary(Token::TokenSpan& tokens) -> Ast::Node {
         return Ast::Node { Ast::Num{ .value = p->value }};
     } else if (const Token::Variable* v = std::get_if<Token::Variable>(&tokens.front())) {
         tokens = tokens.subspan(1);
-        return Ast::Node { Ast::Lval{ .name = v->name }};
+        auto [r, it ] = find_local_var(v->name);
+        size_t index = 0;
+        if (!r) {
+            auto var = add_local_var(v->name);
+            index = var.index;
+        }
+        else {
+            index = it->index;
+        }
+
+        return Ast::Node { Ast::LVar{ .name = v->name, .index = index }};
     }
 
     Error::raise(Error::ExpectPrimary);
@@ -224,3 +236,16 @@ void Parser::expect(Token::TokenSpan& tokens, char ch) {
     msg << "expected " << ch;
     throw std::logic_error(msg.str());
 }
+
+auto Parser::find_local_var(const std::string& name) const -> std::pair<bool, Vars::const_iterator> {
+    auto r = std::find_if(m_locals.cbegin(), m_locals.cend(), [&name] (auto c){
+        return c.name == name;
+    });
+
+    return std::make_pair(r != m_locals.cend(), r);
+}
+
+auto Parser::add_local_var(const std::string& name) -> LVar& {
+    return m_locals.emplace_back(LVar{ .name = name, .index = m_locals.size() + 1 });
+}
+

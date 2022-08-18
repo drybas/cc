@@ -5,10 +5,13 @@
 class Codegen {
 
 public:
-   void generate(const Ast::Node& node) {
-       putIntro();
+   void generate(const Ast::Node& node, size_t local_var_counts) {
+       putIntro(local_var_counts);
        std::visit(*this, node.var);
+
        std::cout << " pop rax \n";
+       std::cout << " mov rsp, rbp\n";
+       std::cout << " pop rbp\n";
        std::cout << " ret \n";
    }
 
@@ -41,6 +44,7 @@ public:
    }
 
     void operator()(const Ast::Num& num) {
+       //std::cout << " ; handle number \n";
        std::cout << " push " << num.value << "\n";
    }
 
@@ -75,18 +79,30 @@ public:
         std::cout << " push rax \n";
     }
 
-    void operator()(const Ast::Lval& lval) {
-
+    void operator()(const Ast::LVar& lvar) {
+        //std::cout << " ; local variable \n";
+        std::cout << " mov rax, rbp\n";
+        std::cout << " sub rax, " << lvar.index * 8 << "\n";
+        std::cout << " push rax\n";
     }
 
-    void operator()(const Ast::Assign& lval) {
-
-   }
+    void operator()(const Ast::Assign& assign) {
+        std::visit(*this, assign.left->var);
+        std::visit(*this, assign.right->var);
+        //std::cout << " ; assign \n";
+        std::cout << " pop rdi\n";
+        std::cout << " pop rax\n";
+        std::cout << " mov [rax], rdi\n";
+        std::cout << " push rdi\n";
+    }
 private:
-    void putIntro() {
+    void putIntro(size_t var_count) {
         std::cout << ".intel_syntax noprefix\n";
         std::cout << ".global main\n";
         std::cout << " main:\n";
-   }
+        std::cout << " push rbp\n";
+        std::cout << " mov rbp, rsp\n";
+        std::cout << " sub rsp, "<< var_count * 8 << "\n";
+  }
 };
 

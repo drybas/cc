@@ -30,11 +30,12 @@ struct Assign {
     NodePtr right;
 };
 
-struct Lval {
+struct LVar {
     std::string name;
+    size_t index;
 };
 
-using NodeVar = std::variant<Num, Operation, Condition, Assign, Lval>;
+using NodeVar = std::variant<Num, Operation, Condition, Assign, LVar>;
 struct Node {
     NodeVar var;
 };

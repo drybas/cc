@@ -25,7 +25,7 @@ auto Scanner::scan() -> Token::TokenVec {
                 tokens.emplace_back(Token::Token{ Token::Condition { .type = "=="}});
                 continue;
             } else {
-                tokens.emplace_back(Token::Token { Token::Assignment { .type = *m_it }});
+                tokens.emplace_back(Token::Token { Token::Assignment { .type = '=' }});
                 continue;
             }
         } else if (*m_it == '!') {

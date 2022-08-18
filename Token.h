@@ -20,6 +20,7 @@ namespace Token {
 
     struct Variable {
        std::string name{};
+       size_t offset = 0;
     };
 
     struct Punctuation {

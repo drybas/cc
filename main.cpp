@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         auto ast = parser.stmt(sp);
 
         Codegen generator;
-        generator.generate(ast);
+        generator.generate(ast, parser.locals_count());
 
         return 0;
     } catch (const std::exception& ex) {
