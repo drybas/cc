@@ -34,7 +34,10 @@ namespace Token {
     struct Eof {
     };
 
-    using Token = std::variant<Num, Operation, Punctuation, Assignment, Variable, Condition, Eof>;
+    struct Return {
+    };
+
+    using Token = std::variant<Num, Operation, Punctuation, Assignment, Variable, Condition, Return, Eof>;
     using TokenVec = std::vector<Token>;
     using TokenSpan = std::span<Token>;
 };

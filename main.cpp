@@ -23,7 +23,8 @@ int main(int argc, char* argv[]) {
         Codegen generator;
         generator.generate_intro(parser.locals_count());
         for (const auto& node: nodes) {
-            generator.generate(node);
+            if (!generator.generate(node))
+                break;
         }
         generator.generate_outro();
 

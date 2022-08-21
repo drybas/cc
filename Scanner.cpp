@@ -1,7 +1,8 @@
 #include "Scanner.h"
 #include "Error.h"
 
-#include<stdexcept>
+#include <stdexcept>
+#include <unordered_map>
 
 Scanner::Scanner(const std::string& line) {
     m_source = line;
@@ -59,8 +60,9 @@ auto Scanner::scan() -> Token::TokenVec {
             continue;
         } else if (std::isalpha(*m_it) > 0) {
             auto e = std::find_if_not(m_it, m_end, [](auto c){ return std::isalpha(c) > 0; });
-            std::string var(m_it, e);
-            tokens.emplace_back(Token::Token{Token::Variable{.name = var}});
+            std::string text(m_it, e);
+            auto token = get_var_or_keyword(text);
+            tokens.emplace_back(token);
             m_it = e;
             continue;
         } else if (std::isdigit(*m_it) > 0) {
@@ -98,3 +100,10 @@ auto Scanner::peek() -> std::tuple<bool, char> {
     return std::make_tuple(false, '\0');
 }
 
+auto Scanner::get_var_or_keyword(const std::string& text) -> Token::Token {
+    if (text == "return") {
+        return Token::Token{ Token::Return {} };
+    }
+
+    return Token::Token{ Token::Variable {.name = text } };
+}

@@ -52,6 +52,19 @@ auto Parser::consume(Token::TokenSpan& s, std::string_view value) -> bool {
     return false;
 }
 
+template<typename T>
+auto Parser::consume(Token::TokenSpan &s) -> bool {
+    if (s.empty())
+        return false;
+
+    if (const auto p = std::get_if<T>(&s.front())) {
+        s = s.subspan(1);
+        return true;
+    }
+
+    return false;
+}
+
 auto Parser::program(Token::TokenSpan& s) -> std::list<Ast::Node> {
     std::list<Ast::Node> lst;
     for (;;) {
@@ -66,7 +79,14 @@ auto Parser::program(Token::TokenSpan& s) -> std::list<Ast::Node> {
 }
 
 auto Parser::stmt(Token::TokenSpan& s) -> Ast::Node {
-    auto node = expr(s);
+    Ast::Node node;
+    if (consume<Token::Return>(s)) {
+        node = Ast::Node{ Ast::Return {
+            .left = std::make_unique<Ast::Node>(std::move(expr(s))) }};
+    } else {
+        node = expr(s);
+    }
+
     if (consume<Token::Punctuation>(s, ';')) {
         return node;
     } else {

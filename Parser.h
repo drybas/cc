@@ -40,6 +40,9 @@ private:
     auto consume(Token::TokenSpan& s, std::string_view value) -> bool;
 
     template<typename T>
+    auto consume(Token::TokenSpan &s) -> bool;
+
+    template<typename T>
     void expect(Token::TokenSpan& tokens, char ch);
 
 private:

@@ -15,9 +15,10 @@ public:
         std::cout << " sub rsp, "<< local_var_counts * 8 << "\n";
     }
 
-    void generate(const Ast::Node& node) {
+    [[nodiscard]] auto generate(const Ast::Node& node) -> bool {
         std::visit(*this, node.var);
         std::cout << " pop rax \n";
+        return m_continue;
     }
 
     void generate_outro() {
@@ -127,6 +128,11 @@ public:
             std::cout << " ; assign done \n";
     }
 
+    void operator()(const Ast::Return& ret) {
+        std::visit(*this, ret.left->var);
+        m_continue = false;
+    }
+
 private:
     void get_addr(const Ast::NodeVar& var) {
 
@@ -140,5 +146,6 @@ private:
 
 private:
     bool m_comments = false;
+    bool m_continue = true;
 };
 

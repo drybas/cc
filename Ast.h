@@ -35,7 +35,11 @@ struct LVar {
     size_t index;
 };
 
-using NodeVar = std::variant<Num, Operation, Condition, Assign, LVar>;
+struct Return {
+    NodePtr left;
+};
+
+using NodeVar = std::variant<Num, Operation, Condition, Assign, LVar, Return>;
 struct Node {
     NodeVar var;
 };
