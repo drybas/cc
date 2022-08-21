@@ -13,6 +13,9 @@ void Error::raise(Error::ErrorKind e, char ch) {
         case Error::ExpectPrimary:
             ss << "Expects primary";
             break;
+        case Error::ExpectLvalue:
+            ss << "lvalue required as left operand of assignment";
+            break;
     }
 
     throw std::logic_error(ss.str().c_str());

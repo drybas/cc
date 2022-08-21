@@ -17,10 +17,15 @@ int main(int argc, char* argv[]) {
         Token::TokenSpan sp(tokens);
 
         Parser parser;
-        auto ast = parser.stmt(sp);
+        auto nodes = parser.program(sp);
+        //auto ast = parser.stmt(sp);
 
         Codegen generator;
-        generator.generate(ast, parser.locals_count());
+        generator.generate_intro(parser.locals_count());
+        for (const auto& node: nodes) {
+            generator.generate(node);
+        }
+        generator.generate_outro();
 
         return 0;
     } catch (const std::exception& ex) {

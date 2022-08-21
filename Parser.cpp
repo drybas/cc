@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 
+// program = stmt*
 // stmt = expr ";"
 // expr = assign
 // assign = eq ("=" assign)?
@@ -51,8 +52,18 @@ auto Parser::consume(Token::TokenSpan& s, std::string_view value) -> bool {
     return false;
 }
 
-template<typename T>
-void expect(Token::TokenSpan& tokens, char ch);
+auto Parser::program(Token::TokenSpan& s) -> std::list<Ast::Node> {
+    std::list<Ast::Node> lst;
+    for (;;) {
+        if (const auto b = std::get_if<Token::Eof>(&s.front())) {
+            break;
+        }
+        auto node = stmt(s);
+        lst.push_back(std::move(node));
+    }
+
+    return lst;
+}
 
 auto Parser::stmt(Token::TokenSpan& s) -> Ast::Node {
     auto node = expr(s);

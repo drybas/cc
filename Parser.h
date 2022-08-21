@@ -20,6 +20,7 @@ class Parser {
     typedef std::vector<LVar> Vars;
 
 public:
+    auto program(Token::TokenSpan& s) -> std::list<Ast::Node>;
     auto stmt(Token::TokenSpan& s) -> Ast::Node;
     auto expr(Token::TokenSpan& s) -> Ast::Node;
     auto assign(Token::TokenSpan& s) -> Ast::Node;

@@ -5,6 +5,7 @@ namespace Error {
         UnexpectedSymbol,
         ExpectedSymbol,
         ExpectPrimary,
+        ExpectLvalue,
     };
 
     void raise(ErrorKind e, char ch = '\0');

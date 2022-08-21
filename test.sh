@@ -18,3 +18,7 @@ assert 1 '0 >= 0;'
 assert 1 '0 > -1;'
 assert 1 '-5 < -1;'
 
+assert 14 'foo = 5; foo = foo + 9;'
+assert 34 'foo = 2; bar = 33; foo = bar + 1;'
+assert 37 'foo = 2; bar = 33; foo = bar + 1; foo = foo + 3;'
+
